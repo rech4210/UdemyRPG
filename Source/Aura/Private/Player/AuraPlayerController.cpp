@@ -4,10 +4,71 @@
 #include "Player/AuraPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Interaction/EnemyInterface.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
+}
+
+// Tick 함수 오버라이딩 (근데 왜 Tick 함수를 override 하지? 유니티의 Update같은거 아닌가)
+void AAuraPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+	CursorTrace();
+	
+}
+
+// 하이라이트에 사용될 커서 함수 정의
+void AAuraPlayerController::CursorTrace()
+{
+	FHitResult CursorHit;
+	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	if(!CursorHit.bBlockingHit) return;
+
+	LastActor = ThisActor;
+	// if Cast hit Not IEnemyInterface, Then return null;
+	ThisActor = CursorHit.GetActor(); // no needs cast cause it wrapped
+
+	/*
+	 * Line trace from cursor. there are several scenarios;
+	 * A. LastActor is null && This Actor is null;
+	 *		- Do nothing
+	 * B. LastActor is null && ThisActor is valid;
+	 *		- Highlight ThisActor
+	 * C. LastActor is valid && ThisActor is null
+	 *		- UnHighlight LastActor
+	 * D. Both actors are valid, but LastActor != ThisActor;
+	 *		- UnHIghlist LastActor, and Highligh ThisActor
+	 * E. Both actors are valid, and are the same actor
+	 *		- Do nothing
+	 */
+
+	if(LastActor == nullptr){
+		if(ThisActor != nullptr){
+			// case B
+			ThisActor->HighlightActor();
+		}
+		else {
+			//both are null, do nothing - case A
+		}
+	}
+	else {// LastActor is valid
+		if(ThisActor == nullptr) {
+			//case C
+			LastActor->UnHighlightActor();
+		}
+		else { // both actors are valid
+			if(LastActor != ThisActor) {
+				//case D
+				LastActor->UnHighlightActor();
+				ThisActor->HighlightActor();
+			}
+			else {
+				//Case E - do nothing
+			}
+		}
+	}
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -57,4 +118,5 @@ void AAuraPlayerController::Move(const struct FInputActionValue& InputActionValu
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X); // Roll
 	}
 }
+
 
