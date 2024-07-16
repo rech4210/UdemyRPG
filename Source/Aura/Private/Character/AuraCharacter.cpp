@@ -5,7 +5,9 @@
 
 #include "AbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
+#include "UI/HUD/AuraHUD.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -44,5 +46,14 @@ void AAuraCharacter::InitAbilityActorInfo() {
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState,this);
 	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
 	AttributeSet = AuraPlayerState->GetAttributeSet();
+
+
+	// HUD의 InitOverlay를 부름. if로 처리하는 이유는 multiplay 환경에서 local 이외의 플레이어는 null이 뜰수있기에 check를 사용하지않음
+	if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController())) {
+		if(AAuraHUD * AuraHUD =  Cast<AAuraHUD>(AuraPlayerController->GetHUD())) {
+			AuraHUD->InitOverlay(AuraPlayerController,AuraPlayerState,AbilitySystemComponent,AttributeSet);
+		}
+	}
+	
 }
 

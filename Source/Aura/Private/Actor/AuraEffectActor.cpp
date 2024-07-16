@@ -2,53 +2,81 @@
 
 
 #include "Actor/AuraEffectActor.h"
-
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "AbilitySystem/AuraAttributeSet.h"
-#include "Components/SphereComponent.h"
 
 AAuraEffectActor::AAuraEffectActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	SetRootComponent(Mesh);
-	
-	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
-	Sphere->SetupAttachment(GetRootComponent());
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
 }
 
-// �浹�� �÷��̾� �Ǵ� ���ʹ̿� ������ �� �ֵ��� �ϱ�. IAbilitySystemInterface�� �����ϱ�
-void AAuraEffectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& sweepResult) {
-
-	//TODO : Change this to apply a Gameplay Effect. For now, using const_cast as a hack!
-	if(IAbilitySystemInterface * ASCInterface = Cast<IAbilitySystemInterface>(OtherActor)) {
-		const UAuraAttributeSet* AuraAttributeSet =  Cast<UAuraAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(UAuraAttributeSet::StaticClass()/*return reference of instance*/));
-		/*GetAttributeSet이 const 반환이므로 const 붙여줄것.*/
-		// use when use before remove 
-		UAuraAttributeSet* MutableAuraAttributeSet = const_cast<UAuraAttributeSet*>(AuraAttributeSet);
-		MutableAuraAttributeSet->SetHealth((AuraAttributeSet->GetHealth() + 25.f));
-		Destroy();
-	}
-}
-
-
-void AAuraEffectActor::EndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
-	
-	
-}
 
 // Called when the game starts or when spawned
 void AAuraEffectActor::BeginPlay()
 {
 	Super::BeginPlay();
+	
+}
 
-	// ��ü�� ������ �� ��� ����Ǵ� �ݹ� �Լ� ��� (��������Ʈ)
-	//DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_SixParams( FComponentBeginOverlapSignature, UPrimitiveComponent, OnComponentBeginOverlap, UPrimitiveComponent*, OverlappedComponent, AActor*, OtherActor, UPrimitiveComponent*, OtherComp, int32, OtherBodyIndex, bool, bFromSweep, const FHitResult &, SweepResult);
-	// ���ε� �ϱ� ���ؼ� OnOverlap �Լ��� �Ű������� ���� ���ǵ� �Ķ���� �������� �����Ѵ�.
-	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraEffectActor::OnOverlap);
-	Sphere->OnComponentEndOverlap.AddDynamic(this,&AAuraEffectActor::EndOverlap);
+// infinite 또는 duration의 경우 지속적으로 사용되므로 EffectSpecToSelf를 만들때 새로운 개체가 들어오면 이 핸들 정보가 사라진다
+// 이를 관리하기위해 Map 자료구조를 사용하자.
+void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass) {
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if(TargetASC == nullptr) return;
+
+	check(GameplayEffectClass);
+	// 다형성 및 제대로 리플리케이트할 수 있도록 FGameplayEffectContext 또는 서브클래스를 감싸는 핸들입니다 
+	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(this);
+	//블루프린트가 게임플레이 이펙트 스펙을 한 번 생성한 다음 핸들로 참조하여 여러 번, 여러 타깃에 적용할 수 있습니다.
+	const FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel,EffectContextHandle);
+	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get()); //Data Tshared . Get() then dereference
+
+	const bool bIsInfinite = EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
+	if(bIsInfinite && InfiniteEffectRemovalPolicy == EEfectRemovalPolicy::RemoveOnEndOverlap) {
+		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
+	}
+}
+
+
+void AAuraEffectActor::OnOverlap(AActor* TargetActor) {
+	if(InstanceEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnOverlap) {
+		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+	}
+	if(DurationEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnOverlap) {
+		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+	}
+	if(InfiniteEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnOverlap) {
+		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+	}
+}
+
+void AAuraEffectActor::OnEndOverlap(AActor* TargetActor) {
+	if(InstanceEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnEndOverlap) {
+		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+	}
+	if(DurationEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnEndOverlap) {
+		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+	}
+	if(InfiniteEffectApplicationPolicy == EEfectApplicationPolicy::ApplyOnEndOverlap) {
+		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+	}
+	if(InfiniteEffectRemovalPolicy == EEfectRemovalPolicy::RemoveOnEndOverlap) {
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+		if(!IsValid(TargetASC)) return;
+
+		TArray<FActiveGameplayEffectHandle> HandleToRemove;
+		for(TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair: ActiveEffectHandles) {
+			if(TargetASC == HandlePair.Value) {
+				TargetASC->RemoveActiveGameplayEffect(HandlePair.Key, 1); // 제거되는 스택 개수 제어
+				HandleToRemove.Add((HandlePair.Key));
+			}
+		}
+		// 맵 데이터 조회중 삭제시 crash가 일어나므로 따로 분리한다.
+		for(FActiveGameplayEffectHandle& Handle : HandleToRemove) {
+			ActiveEffectHandles.FindAndRemoveChecked(Handle);
+		}
+	}
 }

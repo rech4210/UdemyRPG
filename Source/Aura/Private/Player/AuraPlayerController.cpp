@@ -78,8 +78,10 @@ void AAuraPlayerController::BeginPlay()
 	check(AuraContext); //해당 변수가 세팅되지 않을 경우 크래시
 	//mapping context를 사용할 수 있는 subsystem 싱글톤
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(Subsystem);
-	Subsystem->AddMappingContext(AuraContext, 0);
+	// 멀티플레이의 경우를 체크 (로컬 플레이어의 서브 시스템 널 체크)
+	if(Subsystem) {
+		Subsystem->AddMappingContext(AuraContext, 0);
+	}
 
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
