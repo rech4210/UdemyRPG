@@ -43,7 +43,7 @@ struct FEffectProperties {
 };
 
 
-class GameplayEffectExtension;
+// class GameplayEffectExtension;
 
 /**
  * 

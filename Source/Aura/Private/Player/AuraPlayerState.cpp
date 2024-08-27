@@ -13,7 +13,7 @@ AAuraPlayerState::AAuraPlayerState() {
 	
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 
-	// how often try to update client from server (sink) ºü¸¥ µ¿±âÈ­¸¦ À§ÇØ ÀÚÁÖ È£ÃâÇÏµµ·Ï ÇÔ
+	// how often try to update client from server (sink) ë¹ ë¥¸ ë™ê¸°í™”ë¥¼ ìœ„í•´ ìì£¼ í˜¸ì¶œí•˜ë„ë¡ í•¨
 	NetUpdateFrequency = 100.f;
 	
 }

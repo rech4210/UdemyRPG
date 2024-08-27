@@ -17,10 +17,11 @@ class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface
 
 public:
 	AAuraEnemy();
-	// Ãß»ó °³Ã¼´Â instantiate ºÒ°¡ÇÏ¹Ç·Î implement ÇÏ´Â °³Ã¼¿¡¼­ override »ç¿ëÇØÁÙ°Í.
+	// ï¿½ß»ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ instantiate ï¿½Ò°ï¿½ï¿½Ï¹Ç·ï¿½ implement ï¿½Ï´ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ override ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù°ï¿½.
 	virtual void HighlightActor() override;//pure virtual as abstract
 	virtual void UnHighlightActor() override;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void InitAbilityActorInfo() override;
 };

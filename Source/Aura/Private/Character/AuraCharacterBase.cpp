@@ -11,7 +11,7 @@ AAuraCharacterBase::AAuraCharacterBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	//drived µÈ °³Ã¼µé¿¡°Ô °øÅëÀûÀ¸·Î weapon ¸Ş½¬¿Í ÀåÂøÀ§Ä¡, Ãæµ¹ÆÇÁ¤À» ¼³Á¤
+	//drived ëœ ê°œì²´ë“¤ì—ê²Œ ê³µí†µì ìœ¼ë¡œ weapon ë©”ì‰¬ì™€ ì¥ì°©ìœ„ì¹˜, ì¶©ëŒíŒì •ì„ ì„¤ì •
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -24,4 +24,7 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const {
 // Called when the game starts or when spawned
 void AAuraCharacterBase::BeginPlay(){
 	Super::BeginPlay();
+}
+
+void AAuraCharacterBase::InitAbilityActorInfo() {
 }

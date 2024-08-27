@@ -12,7 +12,7 @@
 AAuraEnemy::AAuraEnemy() {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
 
-	// Ability, attributes pointers »ı¼ºÀÚ ÃÊ±âÈ­ 
+	// Ability, attributes pointers ìƒì„±ì ì´ˆê¸°í™” 
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
@@ -20,11 +20,6 @@ AAuraEnemy::AAuraEnemy() {
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 }
 
-void AAuraEnemy::BeginPlay() {
-	Super::BeginPlay();
-	check(AbilitySystemComponent); // if use check can find crash
-	AbilitySystemComponent->InitAbilityActorInfo(this,this);
-}
 void AAuraEnemy::HighlightActor()
 {
 	GetMesh()->SetRenderCustomDepth(true);
@@ -38,3 +33,16 @@ void AAuraEnemy::UnHighlightActor()
 	GetMesh()->SetRenderCustomDepth(false);
 	Weapon->SetRenderCustomDepth(false);
 }
+
+
+void AAuraEnemy::BeginPlay() {
+	Super::BeginPlay();
+	check(AbilitySystemComponent); // if use check can find crash
+	InitAbilityActorInfo();
+}
+
+void AAuraEnemy::InitAbilityActorInfo() {
+	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
+}
+

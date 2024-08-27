@@ -26,17 +26,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//¾ğ¸®¾ó °³Ã¼µéÀ» wrapperÇÏ´Â Æ÷ÀÎÅÍ·Î °³Ã¼¿¡ ¾î¶»°Ô ÂüÁ¶, ÇØÁ¦ÇÏ´ÂÁö, lazy coding µîÀÇ ±â´ÉÀ» ÇÔ.
+	//ì–¸ë¦¬ì–¼ ê°œì²´ë“¤ì„ wrapperí•˜ëŠ” í¬ì¸í„°ë¡œ ê°œì²´ì— ì–´ë–»ê²Œ ì°¸ì¡°, í•´ì œí•˜ëŠ”ì§€, lazy coding ë“±ì˜ ê¸°ëŠ¥ì„ í•¨.
 	UPROPERTY(EditAnywhere, Category = "combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 	//store for attribute, state
-	UPROPERTY() // ¾Æ¸¶ ·¡ÇÎÇÏ´Â °úÁ¤ÀÎ°¡?
-// ¾Æ´Ï ÀÌ°Å UAuraAbilitySystemComponent: UAbilitySystemComponentÀÎµ¥ ºÎ¸ğ Å¬·¡½º ide ¾È¶ß³×
+	UPROPERTY() // ì•„ë§ˆ ë˜í•‘í•˜ëŠ” ê³¼ì •ì¸ê°€?
+// ì•„ë‹ˆ ì´ê±° UAuraAbilitySystemComponent: UAbilitySystemComponentì¸ë° ë¶€ëª¨ í´ë˜ìŠ¤ ide ì•ˆëœ¨ë„¤
 
-	// ÀÌ ºÎºĞÀº ¾ÆÁ÷ initialize µÇÁö ¾ÊÀ½.
+	// ì´ ë¶€ë¶„ì€ ì•„ì§ initialize ë˜ì§€ ì•ŠìŒ.
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+
+	virtual void InitAbilityActorInfo();
 	
 };
